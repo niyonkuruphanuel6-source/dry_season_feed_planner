@@ -4,6 +4,12 @@ A lightweight dairy farm decision-support web application designed to help lives
 
 ---
 
+## 🌐 Live Web Demo
+
+**Live Public Application**: [https://niyonkuruphanuel6-source.github.io/dry_season_feed_planner/](https://niyonkuruphanuel6-source.github.io/dry_season_feed_planner/)
+
+---
+
 ## 📋 Features
 
 - **Farmer Contact Management**: Register smallholder and commercial dairy farmers with contact and location details.
