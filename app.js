@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('base').textContent = (base/1000).toFixed(2) + ' tonnes';
       document.getElementById('dryMatter').textContent = (dryMatter/1000).toFixed(2) + ' tonnes DM';
       document.getElementById('volume').textContent = volume.toFixed(1) + ' m³';
-      document.getElementById('weekly').textContent = 'If you have 7 days to conserve this target evenly, plan for approximately ' + (target/Math.max(1,days)*7/1000).toFixed(2) + ' tonnes per week. Adjust for actual forage availability and harvesting capacity.';
+      document.getElementById('weekly').textContent = 'During the dry season, estimated consumption is approximately ' + (target/Math.max(1,days)*7/1000).toFixed(2) + ' tonnes per week. Adjust for actual forage availability and harvesting capacity.';
       document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
     });
   }

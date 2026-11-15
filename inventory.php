@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $entries = $pdo->query('SELECT i.*,f.full_name FROM silage_inventory i JOIN farmers f ON f.id=i.farmer_id ORDER BY entry_date DESC,i.id DESC LIMIT 100')->fetchAll();
 $made = (float)$pdo->query("SELECT COALESCE(SUM(quantity_kg),0) FROM silage_inventory WHERE entry_type='made'")->fetchColumn();
 $fed = (float)$pdo->query("SELECT COALESCE(SUM(quantity_kg),0) FROM silage_inventory WHERE entry_type='fed'")->fetchColumn();
-$stock = $made - $fed;
+$stock = (float)$pdo->query("SELECT COALESCE(SUM(CASE WHEN entry_type='made' THEN quantity_kg WHEN entry_type='fed' THEN -quantity_kg WHEN entry_type='adjustment' THEN quantity_kg ELSE 0 END),0) FROM silage_inventory")->fetchColumn();
 $pageTitle = 'Silage inventory';
 require 'header.php';
 ?>

@@ -14,7 +14,7 @@ INSTALLATION
 3. Open XAMPP Control Panel and start Apache and MySQL.
 4. Open http://localhost/phpmyadmin
 5. Click Import and import database.sql, OR open the SQL tab and run its contents.
-6. Open app/config.php and confirm the database settings:
+6. Open config.php and confirm the database settings:
    host = localhost
    database = dry_season_planner
    username = root

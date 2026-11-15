@@ -15,16 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = $error ?: 'Choose a valid farmer.';
     } else {
         $stmt = $pdo->prepare('INSERT INTO herds (farmer_id,lactating_cows,dry_cows,heifers,calves) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE lactating_cows=VALUES(lactating_cows), dry_cows=VALUES(dry_cows), heifers=VALUES(heifers), calves=VALUES(calves)');
-        // Keep one herd record per farmer; enforced by the unique index added below if upgrading an existing database.
-        $check = $pdo->prepare('SELECT id FROM herds WHERE farmer_id=?');
-        $check->execute([$farmerId]);
-        if ($check->fetch()) {
-            $up = $pdo->prepare('UPDATE herds SET lactating_cows=?, dry_cows=?, heifers=?, calves=? WHERE farmer_id=?');
-            $up->execute([...$counts, $farmerId]);
-        } else {
-            $ins = $pdo->prepare('INSERT INTO herds (farmer_id,lactating_cows,dry_cows,heifers,calves) VALUES (?,?,?,?,?)');
-            $ins->execute([$farmerId, ...$counts]);
-        }
+        $stmt->execute([$farmerId, ...$counts]);
         header('Location: herds.php?saved=1'); exit;
     }
 }

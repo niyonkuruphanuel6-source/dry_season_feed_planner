@@ -5,7 +5,7 @@ $farmerCount = (int)$pdo->query('SELECT COUNT(*) FROM farmers')->fetchColumn();
 $animalCount = (int)$pdo->query('SELECT COALESCE(SUM(lactating_cows + dry_cows + heifers + calves),0) FROM herds')->fetchColumn();
 $made = (float)$pdo->query("SELECT COALESCE(SUM(quantity_kg),0) FROM silage_inventory WHERE entry_type='made'")->fetchColumn();
 $fed = (float)$pdo->query("SELECT COALESCE(SUM(quantity_kg),0) FROM silage_inventory WHERE entry_type='fed'")->fetchColumn();
-$stock = max(0, $made - $fed);
+$stock = max(0, (float)$pdo->query("SELECT COALESCE(SUM(CASE WHEN entry_type='made' THEN quantity_kg WHEN entry_type='fed' THEN -quantity_kg WHEN entry_type='adjustment' THEN quantity_kg ELSE 0 END),0) FROM silage_inventory")->fetchColumn());
 $recent = $pdo->query('SELECT id, full_name, phone, location, created_at FROM farmers ORDER BY id DESC LIMIT 5')->fetchAll();
 require 'header.php';
 ?>
