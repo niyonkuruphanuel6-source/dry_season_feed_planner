@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dry Season Feed & Silage Planner</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    nav a.active-link { background: var(--pale); color: var(--green-dark); font-weight: 700; }
+    .badge { display: inline-block; background: #e2e8f0; color: #334155; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 6px; }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">🌱 Feed & Silage Planner</div>
+  <nav id="mainNav">
+    <a href="#dashboard" class="nav-btn active-link" data-tab="tab-dashboard">Dashboard</a>
+    <a href="#calculator" class="nav-btn" data-tab="tab-calculator">Silage Calculator</a>
+    <a href="#farmers" class="nav-btn" data-tab="tab-farmers">Farmers & Herds</a>
+    <a href="#inventory" class="nav-btn" data-tab="tab-inventory">Inventory</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <!-- DASHBOARD TAB -->
+  <section id="tab-dashboard" class="tab-content active">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">DAIRY FARM DECISION SUPPORT</p>
+        <h1>Plan today. Feed through the dry season.</h1>
+        <p>Manage farmers, estimate silage targets, and track conserved feed in one place.</p>
+        <button class="btn" onclick="switchTab('tab-calculator')">Calculate silage target →</button>
+      </div>
+    </div>
+    <div class="stats">
+      <article class="stat"><span>Registered farmers</span><strong id="statFarmers">1</strong></article>
+      <article class="stat"><span>Animals recorded</span><strong id="statAnimals">15</strong></article>
+      <article class="stat"><span>Silage made</span><strong id="statMade">24.50 t</strong></article>
+      <article class="stat"><span>Estimated stock remaining</span><strong id="statStock">18.20 t</strong></article>
+    </div>
+    <div class="panel">
+      <div class="section-heading">
+        <h2>Registered Farmers</h2>
+        <a href="#farmers" onclick="switchTab('tab-farmers')">Manage farmers →</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Phone</th><th>Location</th><th>Animals</th></tr>
+          </thead>
+          <tbody id="dashboardFarmersList"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="notice">
+      <strong>Decision Support Reminder:</strong> This calculator provides planning estimates based on dry matter and compaction assumptions. Always confirm rations with a qualified livestock extension officer.
+    </div>
+  </section>
+
+  <!-- CALCULATOR TAB -->
+  <section id="tab-calculator" class="tab-content">
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">CONSERVATION PLANNING</p>
+        <h1>Silage requirement calculator</h1>
+        <p>Estimate silage biomass target from herd demographics, days to cover, and loss factors.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <form id="silageForm" class="form-grid">
+        <label>Farmer / herd profile
+          <select id="calcFarmerSelect">
+            <option value="">Manual Entry</option>
+          </select>
+        </label>
+        <label>Lactating cows<input id="lactating" type="number" min="0" value="8" required></label>
+        <label>Dry cows<input id="dry" type="number" min="0" value="2" required></label>
+        <label>Heifers<input id="heifers" type="number" min="0" value="3" required></label>
+        <label>Calves<input id="calves" type="number" min="0" value="2" required></label>
+        <label>Days to cover (dry season duration)<input id="days" type="number" min="1" max="730" value="98" required></label>
+        <label>Silage kg / lactating cow / day<input id="feedLactating" type="number" min="0" step="0.5" value="20" required></label>
+        <label>Silage kg / dry cow / day<input id="feedDry" type="number" min="0" step="0.5" value="10" required></label>
+        <label>Silage kg / heifer / day<input id="feedHeifer" type="number" min="0" step="0.5" value="8" required></label>
+        <label>Silage kg / calf / day<input id="feedCalf" type="number" min="0" step="0.5" value="3" required></label>
+        <label>Conservation / storage loss (%)<input id="loss" type="number" min="0" max="50" step="1" value="15" required></label>
+        <label>Fresh forage dry matter (%)<input id="dm" type="number" min="10" max="60" step="1" value="30" required></label>
+        <div class="form-action"><button class="btn" type="submit">Calculate target</button></div>
+      </form>
+    </div>
+    <div class="results panel" id="results" hidden aria-live="polite">
+      <p class="eyebrow">ESTIMATED HARVEST TARGET (BEFORE LOSS)</p>
+      <h2 id="targetTonnes">—</h2>
+      <div class="stats result-stats">
+        <article class="stat"><span>Daily fresh silage</span><strong id="daily">—</strong></article>
+        <article class="stat"><span>Base period need</span><strong id="base">—</strong></article>
+        <article class="stat"><span>Dry matter yield</span><strong id="dryMatter">—</strong></article>
+        <article class="stat"><span>Pit volume at 650 kg/m³</span><strong id="volume">—</strong></article>
+      </div>
+      <p id="weekly" class="notice"></p>
+      <p class="small">Disclaimer: Feeding rates are planning assumptions. Silage should be supplemented with balanced protein, mineral licks, and clean water.</p>
+    </div>
+  </section>
+
+  <!-- FARMERS & HERDS TAB -->
+  <section id="tab-farmers" class="tab-content">
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">FARM MANAGEMENT</p>
+        <h1>Farmers & Herd Profiles</h1>
+        <p>Register farmers and manage herd composition.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Register a new farmer</h2>
+      <form id="newFarmerForm" class="form-grid">
+        <label>Full name<input id="farmerName" maxlength="120" placeholder="e.g. Mukasa David" required></label>
+        <label>Phone number<input id="farmerPhone" maxlength="30" placeholder="e.g. 0770000000" required></label>
+        <label class="wide">Village / District<input id="farmerLocation" maxlength="120" placeholder="e.g. Wakiso District" required></label>
+        <label>Lactating cows<input id="fLactating" type="number" min="0" value="5" required></label>
+        <label>Dry cows<input id="fDry" type="number" min="0" value="2" required></label>
+        <label>Heifers<input id="fHeifers" type="number" min="0" value="2" required></label>
+        <label>Calves<input id="fCalves" type="number" min="0" value="1" required></label>
+        <div class="form-action wide"><button class="btn" type="submit">Save farmer profile</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>Active Farm Profiles</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Farmer Name</th><th>Phone</th><th>Location</th><th>Lactating</th><th>Dry</th><th>Heifers</th><th>Calves</th><th>Total</th></tr>
+          </thead>
+          <tbody id="farmersTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- INVENTORY TAB -->
+  <section id="tab-inventory" class="tab-content">
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">STOCK CONTROL</p>
+        <h1>Silage Inventory</h1>
+        <p>Record silage made, daily feedout, and adjustments.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Record an entry</h2>
+      <form id="inventoryForm" class="form-grid">
+        <label>Farmer<select id="invFarmerSelect" required></select></label>
+        <label>Entry type
+          <select id="invType" required>
+            <option value="made">Silage made (+)</option>
+            <option value="fed">Silage fed (-)</option>
+            <option value="adjustment">Adjustment (+/-)</option>
+          </select>
+        </label>
+        <label>Quantity (kg)<input id="invQty" type="number" min="0.1" step="0.1" placeholder="e.g. 500" required></label>
+        <label>Date<input id="invDate" type="date" required></label>
+        <label class="wide">Notes<input id="invNotes" maxlength="255" placeholder="e.g. Pit #2 Napier grass open"></label>
+        <div class="form-action"><button class="btn" type="submit">Log Entry</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>Recent Inventory Logs</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Farmer</th><th>Type</th><th>Quantity</th><th>Notes</th></tr>
+          </thead>
+          <tbody id="inventoryTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  Dry Season Feed & Silage Planner · Open Source Project · <a href="https://github.com/niyonkuruphanuel6-source/dry_season_feed_planner" target="_blank" style="color:var(--green); text-decoration:none; font-weight:bold;">GitHub Repository</a>
+</footer>
+
+<script>
+// State Management via localStorage
+const DEFAULT_FARMERS = [
+  { id: 1, name: "Demo Farmer (Mukasa)", phone: "0700000000", location: "Kampala / Wakiso", lactating: 8, dry: 2, heifers: 3, calves: 2 },
+  { id: 2, name: "Baraka Dairy Cooperative", phone: "0788112233", location: "Mbarara", lactating: 15, dry: 4, heifers: 6, calves: 4 }
+];
+
+const DEFAULT_INVENTORY = [
+  { id: 1, farmerName: "Demo Farmer (Mukasa)", type: "made", qty: 20000, date: "2026-10-15", notes: "First harvest bunker pit" },
+  { id: 2, farmerName: "Demo Farmer (Mukasa)", type: "fed", qty: 2500, date: "2026-11-01", notes: "Daily rationing week 1-2" },
+  { id: 3, farmerName: "Baraka Dairy Cooperative", type: "made", qty: 35000, date: "2026-10-20", notes: "Maize silage pit 1" },
+  { id: 4, farmerName: "Baraka Dairy Cooperative", type: "fed", qty: 4200, date: "2026-11-05", notes: "Routine herd feeding" }
+];
+
+let farmers = JSON.parse(localStorage.getItem('dfs_farmers')) || DEFAULT_FARMERS;
+let inventory = JSON.parse(localStorage.getItem('dfs_inventory')) || DEFAULT_INVENTORY;
+
+function saveState() {
+  localStorage.setItem('dfs_farmers', JSON.stringify(farmers));
+  localStorage.setItem('dfs_inventory', JSON.stringify(inventory));
+  renderAll();
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active-link'));
+  
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
+  
+  const navBtn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+  if (navBtn) navBtn.classList.add('active-link');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchTab(btn.dataset.tab);
+  });
+});
+
+function renderAll() {
+  // 1. Stats calculation
+  const totalFarmers = farmers.length;
+  const totalAnimals = farmers.reduce((sum, f) => sum + Number(f.lactating) + Number(f.dry) + Number(f.heifers) + Number(f.calves), 0);
+  
+  const totalMade = inventory.filter(i => i.type === 'made').reduce((sum, i) => sum + Number(i.qty), 0);
+  const totalFed = inventory.filter(i => i.type === 'fed').reduce((sum, i) => sum + Number(i.qty), 0);
+  const totalAdj = inventory.filter(i => i.type === 'adjustment').reduce((sum, i) => sum + Number(i.qty), 0);
+  const netStock = Math.max(0, totalMade - totalFed + totalAdj);
+
+  document.getElementById('statFarmers').textContent = totalFarmers;
+  document.getElementById('statAnimals').textContent = totalAnimals;
+  document.getElementById('statMade').textContent = (totalMade / 1000).toFixed(2) + ' t';
+  document.getElementById('statStock').textContent = (netStock / 1000).toFixed(2) + ' t';
+
+  // 2. Dashboard Farmers table
+  const dashTbody = document.getElementById('dashboardFarmersList');
+  dashTbody.innerHTML = farmers.slice(0, 5).map(f => `
+    <tr>
+      <td><strong>${f.name}</strong></td>
+      <td>${f.phone}</td>
+      <td>${f.location}</td>
+      <td><span class="badge">${Number(f.lactating) + Number(f.dry) + Number(f.heifers) + Number(f.calves)} animals</span></td>
+    </tr>
+  `).join('');
+
+  // 3. Full Farmers table
+  const fullTbody = document.getElementById('farmersTableBody');
+  fullTbody.innerHTML = farmers.map(f => {
+    const total = Number(f.lactating) + Number(f.dry) + Number(f.heifers) + Number(f.calves);
+    return `
+      <tr>
+        <td><strong>${f.name}</strong></td>
+        <td>${f.phone}</td>
+        <td>${f.location}</td>
+        <td>${f.lactating}</td>
+        <td>${f.dry}</td>
+        <td>${f.heifers}</td>
+        <td>${f.calves}</td>
+        <td><strong>${total}</strong></td>
+      </tr>
+    `;
+  }).join('');
+
+  // 4. Update dropdowns
+  const calcSelect = document.getElementById('calcFarmerSelect');
+  calcSelect.innerHTML = '<option value="">-- Choose registered farmer --</option>' +
+    farmers.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+
+  const invSelect = document.getElementById('invFarmerSelect');
+  invSelect.innerHTML = farmers.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+
+  // 5. Inventory table
+  const invTbody = document.getElementById('inventoryTableBody');
+  invTbody.innerHTML = inventory.slice(-15).reverse().map(i => `
+    <tr>
+      <td>${i.date}</td>
+      <td><strong>${i.farmerName}</strong></td>
+      <td><span class="badge">${i.type.toUpperCase()}</span></td>
+      <td>${Number(i.qty).toLocaleString()} kg</td>
+      <td>${i.notes || '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// Calculator Farmer Change
+document.getElementById('calcFarmerSelect').addEventListener('change', (e) => {
+  const f = farmers.find(x => x.id == e.target.value);
+  if (!f) return;
+  document.getElementById('lactating').value = f.lactating;
+  document.getElementById('dry').value = f.dry;
+  document.getElementById('heifers').value = f.heifers;
+  document.getElementById('calves').value = f.calves;
+});
+
+// Calculator Form Submission
+document.getElementById('silageForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const val = id => Number(document.getElementById(id).value) || 0;
+  
+  const lactating = val('lactating'), dry = val('dry'), heifers = val('heifers'), calves = val('calves');
+  const days = val('days'), loss = val('loss'), dm = val('dm');
+
+  const daily = (lactating * val('feedLactating')) + (dry * val('feedDry')) + (heifers * val('feedHeifer')) + (calves * val('feedCalf'));
+  const base = daily * days;
+  const target = base / (1 - (loss / 100));
+  const dryMatter = target * (dm / 100);
+  const volume = target / 650;
+
+  document.getElementById('results').hidden = false;
+  document.getElementById('targetTonnes').textContent = (target / 1000).toFixed(2) + ' tonnes fresh silage target';
+  document.getElementById('daily').textContent = daily.toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' kg/day';
+  document.getElementById('base').textContent = (base / 1000).toFixed(2) + ' tonnes net need';
+  document.getElementById('dryMatter').textContent = (dryMatter / 1000).toFixed(2) + ' tonnes Dry Matter';
+  document.getElementById('volume').textContent = volume.toFixed(1) + ' m³ pit volume';
+  document.getElementById('weekly').textContent = `During the ${days}-day dry season, plan for approximately ${(target / Math.max(1, days) * 7 / 1000).toFixed(2)} tonnes of silage consumption per week.`;
+  
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+
+// New Farmer Form Submission
+document.getElementById('newFarmerForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newFarmer = {
+    id: Date.now(),
+    name: document.getElementById('farmerName').value.trim(),
+    phone: document.getElementById('farmerPhone').value.trim(),
+    location: document.getElementById('farmerLocation').value.trim(),
+    lactating: Number(document.getElementById('fLactating').value),
+    dry: Number(document.getElementById('fDry').value),
+    heifers: Number(document.getElementById('fHeifers').value),
+    calves: Number(document.getElementById('fCalves').value)
+  };
+  farmers.push(newFarmer);
+  saveState();
+  e.target.reset();
+  alert('Farmer profile registered successfully!');
+});
+
+// Inventory Form Submission
+document.getElementById('inventoryForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const newEntry = {
+    id: Date.now(),
+    farmerName: document.getElementById('invFarmerSelect').value,
+    type: document.getElementById('invType').value,
+    qty: Number(document.getElementById('invQty').value),
+    date: document.getElementById('invDate').value,
+    notes: document.getElementById('invNotes').value.trim()
+  };
+  inventory.push(newEntry);
+  saveState();
+  document.getElementById('invQty').value = '';
+  document.getElementById('invNotes').value = '';
+  alert('Silage inventory transaction recorded!');
+});
+
+// Initialize Date to Today & Render
+document.getElementById('invDate').value = new Date().toISOString().split('T')[0];
+renderAll();
+</script>
+</body>
+</html>
